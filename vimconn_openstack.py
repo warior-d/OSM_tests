@@ -1194,7 +1194,9 @@ class vimconnector(vimconn.VimConnector):
             for flavor in self.nova.flavors.list():
                 epa = flavor.get_keys()
                 self.logger.error("LOGS epa type =  '%s'", type(epa))
-
+                self.logger.error("LOGS epa =  '%s'", str(epa))
+                self.logger.error("LOGS flavor name =  '%s'", str(flavor.name))
+                self.logger.error("LOGS flavor id =  '%s'", str(flavor.id))
                 #if epa:
                     #continue
                     # TODO
@@ -1352,7 +1354,8 @@ class vimconnector(vimconn.VimConnector):
                             self.process_resource_quota(
                                 extended.get("disk-io-quota"), "disk_io", extra_specs
                             )
-
+                    
+'''
                     # create flavor
                     new_flavor = self.nova.flavors.create(
                         name=name,
@@ -1368,6 +1371,8 @@ class vimconnector(vimconn.VimConnector):
                         new_flavor.set_keys(extra_specs)
 
                     return new_flavor.id
+'''
+                    return new_flavor.name
                 except nvExceptions.Conflict as e:
                     if change_name_if_used and retry < max_retries:
                         continue
