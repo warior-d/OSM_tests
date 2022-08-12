@@ -1164,7 +1164,10 @@ class vimconnector(vimconn.VimConnector):
             and disk is returned. Otherwise a flavor with exactly same ram, vcpus and disk is returned or a
             vimconnNotFoundException is raised
         """
-        exact_match = False if self.config.get("use_existing_flavors") else True
+        self.logger.error("LOGS START")
+        exact_match = True if self.config.get("use_existing_flavors") else False
+        aggregate_config_spec = self.config.get("aggregate_instance_extra_specs")
+        self.logger.error("LOGS aggregate_config_spec '%s'", aggregate_config_spec)
 
         try:
             self._reload_connection()
@@ -1190,9 +1193,10 @@ class vimconnector(vimconn.VimConnector):
                 # numas = extended.get("numas")
             for flavor in self.nova.flavors.list():
                 epa = flavor.get_keys()
+                self.logger.error("LOGS epa type =  '%s'", type(epa))
 
-                if epa:
-                    continue
+                #if epa:
+                    #continue
                     # TODO
 
                 flavor_data = (
