@@ -1355,7 +1355,6 @@ class vimconnector(vimconn.VimConnector):
                                 extended.get("disk-io-quota"), "disk_io", extra_specs
                             )
                     
-'''
                     # create flavor
                     new_flavor = self.nova.flavors.create(
                         name=name,
@@ -1371,8 +1370,6 @@ class vimconnector(vimconn.VimConnector):
                         new_flavor.set_keys(extra_specs)
 
                     return new_flavor.id
-'''
-                    return new_flavor.name
                 except nvExceptions.Conflict as e:
                     if change_name_if_used and retry < max_retries:
                         continue
