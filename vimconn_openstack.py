@@ -1253,7 +1253,7 @@ class vimconnector(vimconn.VimConnector):
          repetition
         Returns the flavor identifier
         """
-        self.logger.error("Adding flavor '%s'", str(flavor_data))
+        self.logger.debug("Adding flavor '%s'", str(flavor_data))
         retry = 0
         max_retries = 3
         name_suffix = 0
@@ -1356,7 +1356,6 @@ class vimconnector(vimconn.VimConnector):
                             )
                     # когда создается новый флейвор - если задан параметр aggregate_instance_extra_specs:generic - создаем в нем!
                     # вообще, здесь возможен ньюанс - создание 2х машин с разным агрегатом, но из одного VNF. У обеих будет один и тот же флейвор...
-                    self.logger.error("LOGS extra_specs before '%s'", extra_specs)
                     aggregate_host = self.config.get("aggregate_instance_extra_specs")
                     if aggregate_host:
                         aggregate_extra_val = "aggregate_instance_extra_specs:" + aggregate_host
@@ -1373,7 +1372,6 @@ class vimconnector(vimconn.VimConnector):
                     )
                     # add metadata
                     if extra_specs:
-                        self.logger.error("LOGS extra_specs to add '%s'", extra_specs)
                         new_flavor.set_keys(extra_specs)
 
                     return new_flavor.id
