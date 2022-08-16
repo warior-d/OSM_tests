@@ -1354,7 +1354,12 @@ class vimconnector(vimconn.VimConnector):
                             self.process_resource_quota(
                                 extended.get("disk-io-quota"), "disk_io", extra_specs
                             )
-                    
+                    # когда создается новый флейвор - если задан параметр aggregate_instance_extra_specs:generic - создаем в нем!
+                    self.logger.error("LOGS extra_specs '%s'", extra_specs)
+                    aggregate_host = self.config.get("aggregate_instance_extra_specs")
+                    if aggregate_host:
+                        aggregate_extra_val = "aggregate_instance_extra_specs:" + aggregate_host
+                        extra_specs[str(aggregate_extra_val)] = "true"
                     # create flavor
                     new_flavor = self.nova.flavors.create(
                         name=name,
@@ -1367,6 +1372,7 @@ class vimconnector(vimconn.VimConnector):
                     )
                     # add metadata
                     if extra_specs:
+                        self.logger.error("LOGS extra_specs '%s'", extra_specs)
                         new_flavor.set_keys(extra_specs)
 
                     return new_flavor.id
