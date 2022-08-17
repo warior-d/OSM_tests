@@ -1164,13 +1164,12 @@ class vimconnector(vimconn.VimConnector):
             and disk is returned. Otherwise a flavor with exactly same ram, vcpus and disk is returned or a
             vimconnNotFoundException is raised
         """
-        self.logger.error("LOGS stack START")
         exact_match = True if self.config.get("use_existing_flavors") else False
         use_extra_spec = True if self.config.get("aggregate_instance_extra_specs") else False
         exists_extra_spec = False
-        aggregate_config_spec = self.config.get("aggregate_instance_extra_specs")
-        aggregate_extra_spec = "aggregate_instance_extra_specs:" + aggregate_config_spec
-        self.logger.error("LOGS stack aggregate_extra_spec '%s'", aggregate_extra_spec)
+        if use_extra_spec:
+            aggregate_config_spec = self.config.get("aggregate_instance_extra_specs")
+            aggregate_extra_spec = "aggregate_instance_extra_specs:" + aggregate_config_spec
         try:
             self._reload_connection()
             flavor_candidate_id = None
@@ -1196,20 +1195,19 @@ class vimconnector(vimconn.VimConnector):
             for flavor in self.nova.flavors.list():
                 epa = flavor.get_keys()
                 metadata = flavor.get_keys()
-                self.logger.error("LOGS stack metadata: '%s' |||||| flavor_name type '%s'",
+                self.logger.debug("metadata: '%s' | flavor name: '%s'",
                     metadata,
                     str(flavor.name)
                 )
                 
                 if use_extra_spec:
                     if aggregate_extra_spec not in metadata:
-                        self.logger.error("LOGS stack aggregate_extra_spec not in metadata for this flavor, TO DO continue")
                         continue
                 #if epa:
                     #continue
                     # TODO
                     
-                #если дошли - значит агрегат узла - существует в VIM
+                #если дошли - значит указанный в параметрах агрегат узла существует в VIM
                 exists_extra_spec = True
                 
                 flavor_data = (
@@ -1219,7 +1217,6 @@ class vimconnector(vimconn.VimConnector):
                     flavor.ephemeral,
                     flavor.swap if isinstance(flavor.swap, int) else 0,
                 )
-                self.logger.error("LOGS stack sravnim '%s'", str(flavor_data))
                 if flavor_data == flavor_target:
                     return flavor.id
                 elif (
@@ -1231,18 +1228,13 @@ class vimconnector(vimconn.VimConnector):
 
             if not exact_match and flavor_candidate_id:
                 return flavor_candidate_id
-
-
-            self.logger.error("LOGS stack не смогла(")
-            if exists_extra_spec:
+            
+            self.logger.debug("No such flavor: '%s'", str(flavor_target))
+            if not exists_extra_spec:
                 raise vimconn.VimConnNotFoundException(
-                    "LOGS stack AGGREGATE EXISTS, but Cannot find any flavor matching '{}'".format(flavor_dict)
+                    "You are using parameter 'aggregate_instance_extra_specs', what means, that if where are no flavors with this metadata, you cannot create flavor"
                 )
-            else:
-                raise vimconn.VimConnNotFoundException(
-                    "LOGS stack AGGREGATE NO, and Cannot find any flavor matching '{}'".format(flavor_dict)
-                )            
-
+            return
         except (
             nvExceptions.NotFound,
             nvExceptions.ClientException,

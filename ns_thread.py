@@ -700,7 +700,6 @@ class VimInteractionFlavor(VimInteractionBase):
         created = False
         created_items = {}
         target_vim = self.my_vims[ro_task["target_id"]]
-        self.logger.error("LOGS ns_threat START")
 
         try:
             # FIND
@@ -708,16 +707,18 @@ class VimInteractionFlavor(VimInteractionBase):
 
             if task.get("find_params"):
                 try:
-                    self.logger.error("LOGS ns_threat ищем")
                     flavor_data = task["find_params"]["flavor_data"]
                     vim_flavor_id = target_vim.get_flavor_id_from_data(flavor_data)
                 except vimconn.VimConnNotFoundException as e:
-                    self.logger.error("LOGS ns_threat except: {}".format(e))
-                    pass
+                    ro_vim_item_update = {
+                        "vim_status": "VIM_ERROR",
+                        "created": created,
+                        "vim_details": str(e),
+                    }
+                    return "FAILED", ro_vim_item_update
 
             if not vim_flavor_id and task.get("params"):
                 # CREATE
-                self.logger.error("LOGS ns_threat CREATE flavor")
                 flavor_data = task["params"]["flavor_data"]
                 vim_flavor_id = target_vim.new_flavor(flavor_data)
                 created = True
@@ -729,7 +730,7 @@ class VimInteractionFlavor(VimInteractionBase):
                 "created_items": created_items,
                 "vim_details": None,
             }
-            self.logger.error(
+            self.logger.debug(
                 "task={} {} new-flavor={} created={}".format(
                     task_id, ro_task["target_id"], vim_flavor_id, created
                 )
