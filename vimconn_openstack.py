@@ -1166,9 +1166,10 @@ class vimconnector(vimconn.VimConnector):
         """
         self.logger.error("LOGS START")
         exact_match = True if self.config.get("use_existing_flavors") else False
+        use_extra_spec = True if self.config.get("aggregate_instance_extra_specs") else False
         aggregate_config_spec = self.config.get("aggregate_instance_extra_specs")
-        self.logger.error("LOGS aggregate_config_spec '%s'", aggregate_config_spec)
-
+        aggregate_extra_spec = "aggregate_instance_extra_specs:" + aggregate_config_spec
+        self.logger.error("LOGS aggregate_extra_spec '%s'", aggregate_extra_spec)
         try:
             self._reload_connection()
             flavor_candidate_id = None
@@ -1193,14 +1194,19 @@ class vimconnector(vimconn.VimConnector):
                 # numas = extended.get("numas")
             for flavor in self.nova.flavors.list():
                 epa = flavor.get_keys()
-                self.logger.error("LOGS epa type =  '%s'", type(epa))
-                self.logger.error("LOGS epa =  '%s'", str(epa))
-                self.logger.error("LOGS flavor name =  '%s'", str(flavor.name))
-                self.logger.error("LOGS flavor id =  '%s'", str(flavor.id))
+                metadata = flavor.get_keys()
+                self.logger.error("LOGS metadata: '%s' |||||| flavor_name type '%s'",
+                    metadata,
+                    str(flavor.name)
+                )
+                
+                if use_extra_spec:
+                    if aggregate_extra_spec not in metadata:
+                        self.logger.error("LOGS aggregate_extra_spec not in metadata for this flavor, TO DO continue")
+                        continue
                 #if epa:
                     #continue
                     # TODO
-
                 flavor_data = (
                     flavor.ram,
                     flavor.vcpus,
@@ -1208,6 +1214,7 @@ class vimconnector(vimconn.VimConnector):
                     flavor.ephemeral,
                     flavor.swap if isinstance(flavor.swap, int) else 0,
                 )
+                self.logger.error("LOGS sravnim '%s'", str(flavor_data))
                 if flavor_data == flavor_target:
                     return flavor.id
                 elif (
@@ -1219,7 +1226,7 @@ class vimconnector(vimconn.VimConnector):
 
             if not exact_match and flavor_candidate_id:
                 return flavor_candidate_id
-
+            self.logger.error("LOGS не смогла(")
             raise vimconn.VimConnNotFoundException(
                 "Cannot find any flavor matching '{}'".format(flavor_dict)
             )
